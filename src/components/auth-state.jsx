@@ -25,6 +25,8 @@ import { createClient } from "@/utils/supabase/client";
 import { produce } from "immer";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { LockIcon } from "lucide-react";
 
 const AuthState = () => {
   const [open, setOpen] = useState(false);
@@ -99,7 +101,20 @@ const AuthState = () => {
       {user ? (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button>{user.email || "User"}</Button>
+            <button>
+              <div className="hidden md:block">
+                <Button>{user.email || "User"}</Button>
+              </div>
+              <div className="md:hidden">
+                <Avatar>
+                  <AvatarImage
+                    src={`https://api.dicebear.com/6.x/initials/svg?seed=${user.email}`}
+                    alt={user.email || "User"}
+                  />
+                  <AvatarFallback>UN</AvatarFallback>
+                </Avatar>
+              </div>
+            </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-52">
             <DropdownMenuItem onClick={handleLogout}>
@@ -111,7 +126,12 @@ const AuthState = () => {
       ) : (
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button disabled={loading}>Login / Sign Up</Button>
+            <Button disabled={loading}>
+              <span className="hidden md:block">Login / Sign Up</span>
+              <span className="md:hidden">
+                <LockIcon />
+              </span>
+            </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
