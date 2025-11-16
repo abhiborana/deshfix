@@ -12,25 +12,52 @@ const geist = Geist({
 });
 
 export const metadata = {
+  generator: "Next.js",
+  applicationName: "deshfix",
   title: "Deshfix | Lets Fix Bharat",
   description:
     "Real problems • Real solutions | Practical Reforms • Better INDIA 🇮🇳 | From potholes to policies | Join the movement ⬇️",
+  robots: {
+    index: true,
+    follow: true,
+    "max-snippet": -1,
+    "max-image-preview": "large",
+    "max-video-preview": -1,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+  referrer: "no-referrer-when-downgrade",
+  keywords: [
+    "India",
+    "Bharat",
+    "Politics",
+    "Elections",
+    "Public welfare",
+    "Bjp",
+    "Congress",
+    "Aam Aadmi Party",
+  ],
 };
 
 export const viewport = {
+  viewportFit: "cover",
   width: "device-width",
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  // initialScale: 1,
+  // maximumScale: 1,
+  // userScalable: false,
   minimalUI: true,
-  // Also supported by less commonly used
-  // interactiveWidget: 'resizes-visual',
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
+        suppressHydrationWarning
+        cz-shortcut-listen="true"
         className={cn(
           "antialiased bg-neutral-200 text-black dark:bg-neutral-950 dark:text-white h-dvh w-screen overflow-hidden flex divide-x divide-neutral-300 dark:divide-neutral-800",
           geist.className

@@ -21,6 +21,20 @@ export default function Home() {
             <TopProblems />
           </AnimatedList>
         </Suspense>
+        <footer className="mt-4 text-sm text-start text-neutral-500 text-balance">
+          <p>
+            Deshfix is an initiative to empower citizens to report and resolve
+            local issues. Together, we can build a better India, one problem at
+            a time. Our government is failing us, so its up to us to take
+            action.
+          </p>
+          <p>
+            Deshfix is not affiliated with any political party or organization.
+            But its backed by the people who believe in a better India. Together
+            we can make a difference! We can fix Bharat! By fighting for
+            practical reforms and real solutions.
+          </p>
+        </footer>
       </div>
     </div>
   );
@@ -35,7 +49,6 @@ const TopProblems = async () => {
     .select("*")
     .order("created_at", { ascending: true })
     .limit(10);
-  console.log(`🚀 ~ TopProblems ~ problems:`, problems);
   return problems?.map((problem) => (
     <PostCard key={problem.id} problem={problem} />
   ));

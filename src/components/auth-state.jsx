@@ -18,19 +18,30 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import useDeshfixStore from "@/store";
 import { createClient } from "@/utils/supabase/client";
-import { produce } from "immer";
-import { CircleUserIcon, LockIcon, LogOutIcon } from "lucide-react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { CircleUserIcon, LogOutIcon, ShieldUserIcon } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
+import z from "zod";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Field, FieldError, FieldGroup, FieldLabel } from "./ui/field";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 const AuthState = () => {
-  const [formState, setFormState] = useState({
-    email: "",
-    password: "",
+  const form = useForm({
+    resolver: zodResolver(
+      z.object({
+        email: z.email(),
+        password: z
+          .string({
+            message: "Password must be at least 6 characters long",
+          })
+          .min(6),
+      })
+    ),
   });
   const [loading, setLoading] = useState(false);
   const user = useDeshfixStore((store) => store.user);
@@ -41,28 +52,17 @@ const AuthState = () => {
     dispatch({ type: "SET_STATE", payload: { authModalOpen } });
   };
 
-  const handleChange = (e) => {
-    setFormState(
-      produce(formState, (draft) => {
-        draft[e.target.name] = e.target.value;
-      })
-    );
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (values) => {
     setLoading(true);
     // Handle login/signup logic here
     const supabase = createClient();
-    let { data, error } = await supabase.auth.signInWithPassword(formState);
+    let { data, error } = await supabase.auth.signInWithPassword(values);
     if (error) toast.error(error.message);
-    console.log(`🚀 ~ handleSubmit ~ data:`, data);
     if (data?.user) {
       dispatch({ type: "SET_STATE", payload: { user: data.user } });
       toast.success("Logged in successfully");
     } else {
-      let { data, error } = await supabase.auth.signUp(formState);
-      console.log(`🚀 ~ handleSubmit ~ data2:`, data);
+      let { data, error } = await supabase.auth.signUp(values);
       if (error) toast.error(error.message);
       if (data?.user) {
         dispatch({ type: "SET_STATE", payload: { user: data.user } });
@@ -86,7 +86,6 @@ const AuthState = () => {
       setLoading(true);
       const supabase = createClient();
       const { data, error } = await supabase.auth.getUser();
-      console.log(`🚀 ~ userFetcher ~ user:`, user);
       if (data?.user)
         dispatch({ type: "SET_STATE", payload: { user: data.user } });
       setLoading(false);
@@ -129,54 +128,88 @@ const AuthState = () => {
         </DropdownMenu>
       ) : (
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button disabled={loading}>
-              <span className="hidden md:block">Login / Sign Up</span>
-              <span className="md:hidden">
-                <LockIcon />
-              </span>
-            </Button>
-          </DialogTrigger>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DialogTrigger asChild>
+                <Button
+                  disabled={loading}
+                  size="icon"
+                  className="size-8 md:size-12"
+                >
+                  <ShieldUserIcon className="md:size-6 size-4" />
+                </Button>
+              </DialogTrigger>
+            </TooltipTrigger>
+            <TooltipContent>Login / Sign Up</TooltipContent>
+          </Tooltip>
           <DialogContent className="sm:max-w-[425px]">
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="flex flex-col gap-4"
+              id="auth-form"
+            >
               <DialogHeader>
                 <DialogTitle>Welcome back to DeshFix!</DialogTitle>
                 <DialogDescription>
                   Just fill the form below to continue.
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4">
-                <div className="grid gap-3">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    value={formState.email}
-                    onChange={handleChange}
-                    placeholder="user@deshfix.com"
-                  />
-                </div>
-                <div className="grid gap-3">
-                  <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    name="password"
-                    type="password"
-                    value={formState.password}
-                    onChange={handleChange}
-                    placeholder="********"
-                  />
-                </div>
-              </div>
+              <FieldGroup className={"gap-4"}>
+                <Controller
+                  name="email"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field
+                      data-invalid={fieldState.invalid}
+                      className={"gap-1"}
+                    >
+                      <FieldLabel htmlFor="email">Email Address</FieldLabel>
+                      <Input
+                        {...field}
+                        id="email"
+                        aria-invalid={fieldState.invalid}
+                        placeholder="you@example.com"
+                      />
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  )}
+                />
+                <Controller
+                  name="password"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field
+                      data-invalid={fieldState.invalid}
+                      className={"gap-1"}
+                    >
+                      <FieldLabel htmlFor="password">Password</FieldLabel>
+                      <Input
+                        {...field}
+                        id="password"
+                        aria-invalid={fieldState.invalid}
+                        placeholder="Your secure password (min 6)"
+                        type="password"
+                      />
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  )}
+                />
+              </FieldGroup>
               <DialogFooter>
-                <DialogClose asChild>
-                  <Button type="button" variant="ghost">
-                    Close
+                <Field orientation="horizontal" className={"justify-end"}>
+                  <DialogClose asChild>
+                    <Button type="button" variant="ghost">
+                      Close
+                    </Button>
+                  </DialogClose>
+                  <Button type="submit" disabled={loading} form="auth-form">
+                    Authenticate
                   </Button>
-                </DialogClose>
-                <Button type="submit" disabled={loading}>
-                  Authenticate
-                </Button>
+                </Field>
               </DialogFooter>
             </form>
           </DialogContent>
