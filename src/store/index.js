@@ -6,6 +6,8 @@ export const initialState = {
   loading: false,
   error: null,
   user: null,
+  authModalOpen: false,
+  post: null,
 };
 
 const useDeshfixStore = create(

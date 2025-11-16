@@ -4,76 +4,112 @@ import {
   InputGroup,
   InputGroupAddon,
   InputGroupButton,
+  InputGroupInput,
   InputGroupText,
   InputGroupTextarea,
 } from "@/components/ui/input-group";
+import { Label } from "@/components/ui/label";
+import useDeshfixStore from "@/store";
 import { produce } from "immer";
-import { ArrowUpIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
-const MAX_TITLE_LENGTH = 120;
+const MAX_DESC_LENGTH = 120;
 
 const CreatePost = () => {
+  const user = useDeshfixStore((state) => state.user);
+  const dispatch = useDeshfixStore((state) => state.dispatch);
+
   const { refresh } = useRouter();
   const [post, setPost] = useState({
     title: "",
+    description: "",
+    created_by: user?.email || null,
   });
 
   const handleChange = (e) => {
     setPost(
       produce(post, (draft) => {
-        draft.title = e.target.value;
+        draft[e.target.name] = e.target.value;
       })
     );
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!user) {
+      dispatch({ type: "SET_STATE", payload: { authModalOpen: true } });
+      return;
+    }
     console.log("Submitting post:", post);
     const { error } = await createPost(post);
     if (error) toast.error(error.message);
     else {
       toast.success("Problem posted successfully!");
-      setPost({ title: "" });
+      setPost(
+        produce(post, (draft) => {
+          draft.title = "";
+          draft.description = "";
+        })
+      );
       refresh();
     }
   };
 
-  const charLeft = MAX_TITLE_LENGTH - post.title.length;
+  const charLeft = MAX_DESC_LENGTH - post.title.length;
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="w-full flex flex-col gap-4 max-w-xl"
+      className="w-full flex flex-col gap-2 max-w-xl"
     >
-      <InputGroup className={"bg-neutral-50 dark:bg-neutral-900"}>
-        <InputGroupTextarea
-          value={post.title}
-          onChange={handleChange}
-          rows={3}
-          maxLength={MAX_TITLE_LENGTH}
-          placeholder="Discuss a problem..."
-        />
-        <InputGroupAddon align="block-end">
-          <InputGroupText className="text-muted-foreground text-xs">
-            {charLeft} characters left
-          </InputGroupText>
-          <InputGroupButton
-            variant="default"
-            className="rounded-full ml-auto"
-            type="submit"
-            size="icon-xs"
-            disabled={
-              post.title.length === 0 || post.title.length > MAX_TITLE_LENGTH
+      <Label className="text-xl font-bold text-center w-full" htmlFor="title">
+        {`Post new problem`}
+      </Label>
+      <div className="flex flex-col gap-1">
+        <InputGroup className={"bg-neutral-50 dark:bg-neutral-900"}>
+          <InputGroupInput
+            placeholder="Lets fix a problem"
+            autoFocus
+            name="title"
+            value={post.title}
+            onChange={(e) =>
+              setPost(
+                produce(post, (draft) => {
+                  draft.title = e.target.value;
+                })
+              )
             }
-          >
-            <ArrowUpIcon />
-            <span className="sr-only">Send</span>
-          </InputGroupButton>
-        </InputGroupAddon>
-      </InputGroup>
+          />
+        </InputGroup>
+        <InputGroup className={"bg-neutral-50 dark:bg-neutral-900"}>
+          <InputGroupTextarea
+            value={post.description}
+            onChange={handleChange}
+            rows={3}
+            name="description"
+            maxLength={MAX_DESC_LENGTH}
+            placeholder="Add more details about your problem..."
+          />
+          <InputGroupAddon align="block-end">
+            <InputGroupText className="text-muted-foreground text-xs">
+              {charLeft} characters left
+            </InputGroupText>
+            <InputGroupButton
+              variant="default"
+              className="rounded-full ml-auto"
+              type="submit"
+              size="sm"
+              disabled={
+                post.title.length === 0 || post.title.length > MAX_DESC_LENGTH
+              }
+            >
+              Post
+            </InputGroupButton>
+          </InputGroupAddon>
+        </InputGroup>
+      </div>
     </form>
   );
 };

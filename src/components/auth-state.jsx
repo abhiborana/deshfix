@@ -15,7 +15,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -23,20 +22,24 @@ import { Label } from "@/components/ui/label";
 import useDeshfixStore from "@/store";
 import { createClient } from "@/utils/supabase/client";
 import { produce } from "immer";
+import { CircleUserIcon, LockIcon, LogOutIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { LockIcon } from "lucide-react";
 
 const AuthState = () => {
-  const [open, setOpen] = useState(false);
   const [formState, setFormState] = useState({
     email: "",
     password: "",
   });
   const [loading, setLoading] = useState(false);
   const user = useDeshfixStore((store) => store.user);
+  const open = useDeshfixStore((store) => store.authModalOpen);
   const dispatch = useDeshfixStore((store) => store.dispatch);
+
+  const setOpen = (authModalOpen) => {
+    dispatch({ type: "SET_STATE", payload: { authModalOpen } });
+  };
 
   const handleChange = (e) => {
     setFormState(
@@ -101,25 +104,26 @@ const AuthState = () => {
       {user ? (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button>
-              <div className="hidden md:block">
-                <Button>{user.email || "User"}</Button>
-              </div>
-              <div className="md:hidden">
-                <Avatar>
-                  <AvatarImage
-                    src={`https://api.dicebear.com/6.x/initials/svg?seed=${user.email}`}
-                    alt={user.email || "User"}
-                  />
-                  <AvatarFallback>UN</AvatarFallback>
-                </Avatar>
-              </div>
-            </button>
+            <Avatar className={"rounded-md md:size-12"}>
+              <AvatarImage
+                src={`https://api.dicebear.com/6.x/initials/svg?seed=${user.email}`}
+                alt={user.email || "User"}
+              />
+              <AvatarFallback>UN</AvatarFallback>
+            </Avatar>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-52">
+            <DropdownMenuItem
+              className={
+                "w-full flex items-center gap-2 line-clamp-1 break-all"
+              }
+            >
+              <CircleUserIcon className="inline mr-2" />
+              <span>{user.email}</span>
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={handleLogout}>
+              <LogOutIcon />
               Log out
-              <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

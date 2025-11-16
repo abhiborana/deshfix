@@ -1,4 +1,5 @@
 import Navbar from "@/components/navbar";
+import PostDialog from "@/components/post-dialog";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
@@ -43,8 +44,9 @@ export default function RootLayout({ children }) {
           <Navbar />
           <main className="flex-1 p-4 h-full overflow-y-auto">{children}</main>
           {/* <section className="flex flex-col p-4 h-full w-fit md:w-full max-w-56"></section> */}
+          <PostDialog />
           <Analytics />
-          <Toaster richColors />
+          <Toaster richColors theme="light" />
         </ThemeProvider>
       </body>
     </html>
