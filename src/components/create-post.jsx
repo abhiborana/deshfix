@@ -25,7 +25,6 @@ const CreatePost = () => {
   const [post, setPost] = useState({
     title: "",
     description: "",
-    created_by: user?.email || null,
   });
 
   const handleChange = (e) => {
@@ -42,8 +41,12 @@ const CreatePost = () => {
       dispatch({ type: "SET_STATE", payload: { authModalOpen: true } });
       return;
     }
-    console.log("Submitting post:", post);
-    const { error } = await createPost(post);
+    setPost(
+      produce(post, (draft) => {
+        draft.created_by = user.id;
+      })
+    );
+    const { error } = await createPost({ ...post, created_by: user.email });
     if (error) toast.error(error.message);
     else {
       toast.success("Problem posted successfully!");
@@ -57,7 +60,7 @@ const CreatePost = () => {
     }
   };
 
-  const charLeft = MAX_DESC_LENGTH - post.title.length;
+  const charLeft = MAX_DESC_LENGTH - post.description.length;
 
   return (
     <form
